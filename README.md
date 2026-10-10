@@ -55,7 +55,6 @@ Other commands: `wlora compare` (side-by-side HTML of several models on sample i
     IMG_5232.jpg
     IMG_5232.txt          # "siggraph, cat, no humans, animal focus, full body, from above, on back, ..."
     IMG_5232.caption.json
-  raw/                    # original camera raws (CR3, NEF, ...) moved here on ingest
   exports/<name>/         # training-ready copies: image + .txt + manifest.jsonl
   .wlora/                 # wlora.log, compare reports
 ```
@@ -66,7 +65,8 @@ JPEG/PNG/WebP are moved as-is. HEIC/HEIF/AVIF are converted to JPEG (q95, orient
 applied, EXIF kept). Camera raws (CR3, CR2, NEF, ARW, DNG, RAF, ORF, RW2, …) are converted
 via LibRaw (`rawpy`): by default the camera-rendered full-size embedded JPEG is used as-is
 (byte-exact, camera colours, EXIF kept); `ingest.raw.source: develop` demosaics instead.
-The raw itself is kept in `raw/` (`ingest.raw.keep_original`). Videos and other files are skipped.
+Like HEIC, the original raw is deleted after conversion with `ingest.mode: move`
+(kept with `copy`). Videos and other files are skipped.
 
 ### Re-runs and protection of human work
 

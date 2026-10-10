@@ -42,7 +42,6 @@ def ingest(ds: Dataset, src: Path, mode: str | None, dry_run: bool) -> None:
     mode = mode or ds.cfg["ingest"]["mode"]
     quality = int(ds.cfg["ingest"]["jpeg_quality"])
     raw_cfg = ds.cfg["ingest"].get("raw", {})
-    raw_dir = ds._path("raw_originals") if raw_cfg.get("keep_original", True) else None
     ds.images_dir.mkdir(parents=True, exist_ok=True)
     taken = {p.stem.lower() for p in ds.images_dir.iterdir() if p.is_file()}
     files = sorted(p for p in src.iterdir() if p.is_file() and not p.name.startswith("."))
@@ -75,12 +74,7 @@ def ingest(ds: Dataset, src: Path, mode: str | None, dry_run: bool) -> None:
         if ext in RAW_EXTS:
             how = convert_raw_to_jpeg(p, dst, quality, raw_cfg.get("source", "embedded"))
             print(f" ({how})", end="")
-            if mode == "move" and raw_dir is not None:
-                raw_dir.mkdir(parents=True, exist_ok=True)
-                kept = raw_dir / f"{stem}{p.suffix}"
-                shutil.move(p, kept)
-                print(f", raw kept in {kept.relative_to(ds.root)}", end="")
-            elif mode == "move":
+            if mode == "move":
                 p.unlink()
         elif ext in CONVERT_EXTS:
             convert_to_jpeg(p, dst, quality)

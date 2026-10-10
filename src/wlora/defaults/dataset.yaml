@@ -119,10 +119,8 @@ ingest:
   jpeg_quality: 95
   raw:                         # CR3, CR2, NEF, ARW, DNG, RAF, ...
     source: embedded           # embedded (camera-rendered full-size preview) | develop (LibRaw demosaic)
-    keep_original: true        # with mode=move, move the raw to paths.raw_originals instead of deleting it
 
 paths:
   images: images
   exports: exports
-  raw_originals: raw
   state: .wlora
