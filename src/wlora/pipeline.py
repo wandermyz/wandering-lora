@@ -11,7 +11,8 @@ from pathlib import Path
 
 from . import __version__
 from .config import Dataset
-from .imageio import CONVERT_EXTS, IMAGE_EXTS, convert_to_jpeg, is_image, load_for_inference, sha256_file
+from .imageio import (CONVERT_EXTS, IMAGE_EXTS, RAW_EXTS, convert_raw_to_jpeg, convert_to_jpeg, is_image,
+                      load_for_inference, sha256_file)
 from .models import get_backend
 from .normalize import Vocabulary, coerce_classification, normalize
 from .prompt import build_prompt, extract_json
@@ -40,13 +41,15 @@ def list_images(ds: Dataset) -> list[Path]:
 def ingest(ds: Dataset, src: Path, mode: str | None, dry_run: bool) -> None:
     mode = mode or ds.cfg["ingest"]["mode"]
     quality = int(ds.cfg["ingest"]["jpeg_quality"])
+    raw_cfg = ds.cfg["ingest"].get("raw", {})
+    raw_dir = ds._path("raw_originals") if raw_cfg.get("keep_original", True) else None
     ds.images_dir.mkdir(parents=True, exist_ok=True)
     taken = {p.stem.lower() for p in ds.images_dir.iterdir() if p.is_file()}
     files = sorted(p for p in src.iterdir() if p.is_file() and not p.name.startswith("."))
     n = 0
     for p in files:
         ext = p.suffix.lower()
-        if ext not in IMAGE_EXTS | CONVERT_EXTS:
+        if ext not in IMAGE_EXTS | CONVERT_EXTS | RAW_EXTS:
             print(f"skip (unsupported) {p.name}")
             continue
         if time.time() - p.stat().st_mtime < 30:
@@ -59,15 +62,27 @@ def ingest(ds: Dataset, src: Path, mode: str | None, dry_run: bool) -> None:
         while stem.lower() in taken:  # stems must be unique: IMG.txt maps to one image
             i += 1
             stem = f"{p.stem}_{i}"
-        out_ext = ".jpg" if ext in CONVERT_EXTS else p.suffix
+        convert = ext in CONVERT_EXTS or ext in RAW_EXTS
+        out_ext = ".jpg" if convert else p.suffix
         dst = ds.images_dir / f"{stem}{out_ext}"
-        action = "convert" if ext in CONVERT_EXTS else mode
-        print(f"{action:8} {p.name} -> {dst.relative_to(ds.root)}")
+        action = "convert" if convert else mode
+        print(f"{action:8} {p.name} -> {dst.relative_to(ds.root)}", end="", flush=True)
         n += 1
         if dry_run:
+            print()
             taken.add(stem.lower())
             continue
-        if ext in CONVERT_EXTS:
+        if ext in RAW_EXTS:
+            how = convert_raw_to_jpeg(p, dst, quality, raw_cfg.get("source", "embedded"))
+            print(f" ({how})", end="")
+            if mode == "move" and raw_dir is not None:
+                raw_dir.mkdir(parents=True, exist_ok=True)
+                kept = raw_dir / f"{stem}{p.suffix}"
+                shutil.move(p, kept)
+                print(f", raw kept in {kept.relative_to(ds.root)}", end="")
+            elif mode == "move":
+                p.unlink()
+        elif ext in CONVERT_EXTS:
             convert_to_jpeg(p, dst, quality)
             if mode == "move":
                 p.unlink()
@@ -75,6 +90,7 @@ def ingest(ds: Dataset, src: Path, mode: str | None, dry_run: bool) -> None:
             shutil.move(p, dst)
         else:
             shutil.copy2(p, dst)
+        print()
         taken.add(stem.lower())
     print(f"{'would ingest' if dry_run else 'ingested'} {n} file(s)")
 

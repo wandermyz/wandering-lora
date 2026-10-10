@@ -11,6 +11,7 @@ dependencies = [
   "bitsandbytes",
   "pillow>=11.1",
   "pillow-heif>=1.0",
+  "rawpy>=0.27",
   "pyyaml",
   "huggingface-hub",
   "onnxruntime-gpu>=1.20",

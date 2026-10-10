@@ -154,3 +154,18 @@ def test_external_edit_revokes_approval(ds):
     assert Sidecar(img).state()[0] == "approved"
     Sidecar(img).txt_path.write_text("siggraph, cat, changed")
     assert Sidecar(img).state()[0] == "edited"
+
+
+def test_raw_extensions_exclude_video():
+    from wlora.imageio import RAW_EXTS
+    assert ".cr3" in RAW_EXTS and ".mov" not in RAW_EXTS
+
+
+def test_ingest_skips_video(ds, tmp_path, capsys):
+    import os, time
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "clip.MOV").write_bytes(b"x")
+    os.utime(src / "clip.MOV", (time.time() - 60, time.time() - 60))
+    pipeline.ingest(ds, src, "move", dry_run=False)
+    assert (src / "clip.MOV").exists() and not any(ds.images_dir.iterdir())

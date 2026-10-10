@@ -34,7 +34,7 @@ offline (`HF_HUB_OFFLINE=1`).
 ```sh
 wlora init ~/Datasets/siggraph --trigger siggraph --type cat
 $EDITOR ~/Datasets/siggraph/dataset.yaml     # subject features, identity tags, taxonomy
-wlora ingest ~/Datasets/siggraph ~/Shared    # move images in; HEIC -> JPEG (q95, EXIF kept)
+wlora ingest ~/Datasets/siggraph ~/Shared    # move images in; HEIC/raw -> JPEG, videos skipped
 wlora run ~/Datasets/siggraph --limit 20     # prototype on a few images
 wlora run ~/Datasets/siggraph                # everything not yet captioned (resumable)
 wlora status ~/Datasets/siggraph -v
@@ -55,9 +55,18 @@ Other commands: `wlora compare` (side-by-side HTML of several models on sample i
     IMG_5232.jpg
     IMG_5232.txt          # "siggraph, cat, no humans, animal focus, full body, from above, on back, ..."
     IMG_5232.caption.json
+  raw/                    # original camera raws (CR3, NEF, ...) moved here on ingest
   exports/<name>/         # training-ready copies: image + .txt + manifest.jsonl
   .wlora/                 # wlora.log, compare reports
 ```
+
+### Input formats
+
+JPEG/PNG/WebP are moved as-is. HEIC/HEIF/AVIF are converted to JPEG (q95, orientation
+applied, EXIF kept). Camera raws (CR3, CR2, NEF, ARW, DNG, RAF, ORF, RW2, …) are converted
+via LibRaw (`rawpy`): by default the camera-rendered full-size embedded JPEG is used as-is
+(byte-exact, camera colours, EXIF kept); `ingest.raw.source: develop` demosaics instead.
+The raw itself is kept in `raw/` (`ingest.raw.keep_original`). Videos and other files are skipped.
 
 ### Re-runs and protection of human work
 
