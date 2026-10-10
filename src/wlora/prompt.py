@@ -19,6 +19,7 @@ TAG_CATEGORIES = {
     "setting": "location, e.g. bed, couch, rug, windowsill, garden, carpet, wooden floor",
     "background": "e.g. simple background, blurry background, white wall, plant",
     "lighting": "e.g. sunlight, dim lighting, backlighting, shadow",
+    "meta": "visible overlays or photo artifacts, e.g. timestamp, watermark, text, fisheye, motion blur",
 }
 
 
