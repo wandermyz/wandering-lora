@@ -54,8 +54,12 @@ Unknown keys must be preserved by any writer (read-modify-write the whole object
 - `approved` — a human approved the current `.txt`.
 - `needs_regen` — a human asked for regeneration; the next `wlora run` replaces the primary result.
 
-Human-protected = `edited` or `approved`, **or** the `.txt` hash differs from `caption_sha256`
-(the .txt was edited by some other tool → treated as `edited`).
+Effective status: if `status` is `generated` or `approved` but the sha256 of the raw `.txt` bytes
+differs from `caption_sha256`, the .txt was edited by some other tool → treat as `edited`
+(an approval only covers the exact text that was approved). Unknown statuses → `edited`.
+A `.txt` without json → `edited`.
+
+Human-protected = effective status `edited` or `approved`.
 
 ## Writer rules
 

@@ -135,3 +135,22 @@ def test_ingest_heic_like_and_unique_stems(ds, tmp_path):
     pipeline.ingest(ds, src, "copy", dry_run=False)
     names = sorted(p.name for p in ds.images_dir.iterdir())
     assert len(names) == 2 and len({Path(n).stem for n in names}) == 2
+
+
+def test_trailing_newline_counts_as_edit_like_gallery(ds):
+    img = _img(ds)
+    pipeline.write_result(ds, img, RESULT, "primary")
+    Sidecar(img).txt_path.write_text(RESULT["caption"] + "\n")
+    assert Sidecar(img).state()[0] == "edited"
+    pipeline.mark(ds, ["a"], "approved")
+    assert Sidecar(img).state()[0] == "approved"
+    assert Sidecar(img).txt_path.read_text() == RESULT["caption"] + "\n"  # mark never rewrites .txt
+
+
+def test_external_edit_revokes_approval(ds):
+    img = _img(ds)
+    pipeline.write_result(ds, img, RESULT, "primary")
+    pipeline.mark(ds, ["a"], "approved")
+    assert Sidecar(img).state()[0] == "approved"
+    Sidecar(img).txt_path.write_text("siggraph, cat, changed")
+    assert Sidecar(img).state()[0] == "edited"

@@ -15,7 +15,7 @@ from .imageio import CONVERT_EXTS, IMAGE_EXTS, convert_to_jpeg, is_image, load_f
 from .models import get_backend
 from .normalize import Vocabulary, coerce_classification, normalize
 from .prompt import build_prompt, extract_json
-from .sidecar import STATUSES, Sidecar, now_iso, sha256_text
+from .sidecar import Sidecar, now_iso, sha256_text
 
 log = logging.getLogger("wlora")
 
@@ -210,8 +210,8 @@ def status(ds: Dataset, verbose: bool) -> None:
 
 
 def mark(ds: Dataset, names: list[str], new_status: str) -> None:
-    if new_status not in STATUSES:
-        raise SystemExit(f"status must be one of {STATUSES}")
+    if new_status not in ("approved", "needs_regen"):
+        raise SystemExit("status must be approved or needs_regen")
     for img in list_images(ds):
         if not any(fnmatch.fnmatch(img.name, n) or img.stem == n for n in names):
             continue
@@ -221,9 +221,12 @@ def mark(ds: Dataset, names: list[str], new_status: str) -> None:
             print(f"skip {img.name}: no caption yet")
             continue
         data = data or {"image": img.name}
+        raw = sc.read_txt_raw()
+        if new_status == "approved" and raw is not None:  # approving accepts the .txt as it is now
+            data["caption"], data["caption_sha256"] = txt, sha256_text(raw)
         data["status"] = new_status
         data["review"] = {"updated_at": now_iso(), "by": "cli"}
-        sc.write(data, caption=txt)  # re-sync caption hash with current .txt
+        sc.write(data, caption=None)
         print(f"{new_status:12} {img.name}")
 
 

@@ -54,11 +54,16 @@ class Sidecar:
     def json_path(self) -> Path:
         return self.image.with_name(self.image.stem + ".caption.json")
 
-    def read_txt(self) -> str | None:
+    def read_txt_raw(self) -> str | None:
         try:
-            return self.txt_path.read_text(encoding="utf-8").strip()
+            with open(self.txt_path, encoding="utf-8", newline="") as f:
+                return f.read()
         except FileNotFoundError:
             return None
+
+    def read_txt(self) -> str | None:
+        raw = self.read_txt_raw()
+        return raw.strip() if raw is not None else None
 
     def read_json(self) -> dict[str, Any] | None:
         try:
@@ -67,13 +72,20 @@ class Sidecar:
             return None
 
     def state(self) -> tuple[str, dict | None, str | None]:
-        """Return (effective_status, json, txt). Status 'none' if never processed."""
-        data, txt = self.read_json(), self.read_txt()
+        """Return (effective_status, json, txt). Status 'none' if never processed.
+
+        Must agree with wandering-gallery's effectiveStatus(): the hash covers the raw
+        .txt bytes, and unknown statuses count as human edits.
+        """
+        data, raw = self.read_json(), self.read_txt_raw()
+        txt = raw.strip() if raw is not None else None
         if data is None:
-            return ("edited" if txt else "none"), None, txt
+            return ("edited" if raw is not None else "none"), None, txt
         status = data.get("status", "generated")
-        if status == "generated" and txt is not None and sha256_text(txt) != data.get("caption_sha256"):
-            status = "edited"  # .txt changed behind our back: treat as human edit
+        if status not in STATUSES:
+            status = "edited"
+        if status in ("generated", "approved") and raw is not None and sha256_text(raw) != data.get("caption_sha256"):
+            status = "edited"  # .txt changed behind our back: a human edit, no longer the approved text
         if status == "generated" and txt is None:
             status = "missing_txt"
         return status, data, txt
