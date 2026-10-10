@@ -1,0 +1,114 @@
+# wandering-lora dataset configuration.
+# Paths are relative to this file's directory unless absolute.
+
+subject:
+  name: "Siggraph"
+  type: "cat"                  # free text, shown to the model
+  trigger_word: "siggraph"
+  class_tags: ["cat"]          # tags placed right after the trigger word
+  # Permanent identity features. They are told to the model as context and, with
+  # identity.mode=drop, removed from captions so the trigger word absorbs them.
+  features: "white long-haired cat with brown patches on the head, back and tail"
+
+identity:
+  mode: drop                   # drop | keep
+  # Glob patterns (fnmatch) of tags describing permanent features.
+  drop_tags:
+    - "* fur"
+    - "fur"
+    - "fluffy*"
+    - "long hair"
+    - "long-haired*"
+    - "*tabby*"
+    - "calico*"
+    - "* and white*"
+    - "white cat"
+    - "brown cat"
+    - "orange cat"
+    - "* eyes"
+  # Exceptions: tags that match drop_tags but describe variable state.
+  keep_tags: ["closed eyes", "half-closed eyes", "wet fur"]
+
+caption:
+  # Fixed tags inserted after class_tags (after taxonomy-derived "no humans").
+  fixed_tags: ["animal focus"]
+  order:                       # category order in the final caption
+    - trigger
+    - class
+    - fixed
+    - composition
+    - view
+    - pose
+    - action
+    - expression
+    - gaze
+    - appearance
+    - accessories
+    - objects
+    - environment
+    - setting
+    - background
+    - lighting
+    - other
+  max_tags: 24
+  vocabulary: null             # optional extra vocabulary yaml (merged over the built-in one)
+
+# Classification taxonomy. Each dimension is enum (one value) or bool.
+# For enum values, `tag` (optional) is the caption tag emitted for that value.
+# For bools, `tag_true` / `tag_false` (optional) are emitted for that answer.
+# `category` (optional) places the emitted tag in a caption.order slot
+# (default: the dimension name if it is in caption.order, else "other").
+taxonomy:
+  composition:
+    description: "how much of the subject is in frame"
+    values:
+      face_closeup: {tag: "close-up", description: "head/face fills the frame"}
+      upper_body: {tag: "upper body", description: "head and front part of the body"}
+      full_body: {tag: "full body", description: "whole body visible"}
+      environmental: {tag: "wide shot", description: "subject small within a larger scene"}
+  view:
+    description: "camera position relative to the subject's body"
+    values:
+      front: {tag: "facing viewer", description: "subject faces the camera"}
+      three_quarter: {description: "between front and side"}
+      side: {tag: "from side", description: "profile"}
+      rear: {tag: "from behind", description: "camera behind the subject"}
+      top_down: {tag: "from above", description: "camera looks down on the subject"}
+      low_angle: {tag: "from below", description: "camera looks up at the subject"}
+      other: {}
+  pose:
+    description: "main body pose"
+    values:
+      sitting: {tag: "sitting"}
+      standing: {tag: "standing"}
+      lying: {tag: "lying"}
+      walking: {tag: "walking"}
+      sleeping: {tag: "sleeping"}
+      stretching: {tag: "stretching"}
+      jumping: {tag: "jumping"}
+      other: {}
+  environment:
+    values:
+      indoors: {tag: "indoors"}
+      outdoors: {tag: "outdoors"}
+      unknown: {}
+  face_visible: {type: bool, description: "the subject's face is visible"}
+  eyes_open: {type: bool, description: "the subject's eyes are open", tag_false: "closed eyes", category: expression}
+  tail_visible: {type: bool, description: "the subject's tail is visible"}
+  partially_occluded: {type: bool, description: "part of the subject is hidden behind something or cut off"}
+  humans_visible: {type: bool, description: "any person or human body part (e.g. a hand) is visible", tag_false: "no humans", category: fixed}
+
+model:
+  name: qwen3.5-4b             # see `wlora models`
+  max_pixels: 1048576          # images are downscaled (aspect kept) to at most this many pixels
+  max_new_tokens: 600
+  temperature: 0               # 0 = greedy (reproducible)
+
+ingest:
+  mode: move                   # move | copy  (HEIC is always converted to JPEG)
+  jpeg_quality: 95
+
+paths:
+  images: images
+  exports: exports
+  state: .wlora

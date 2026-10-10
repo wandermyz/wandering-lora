@@ -1,0 +1,43 @@
+[project]
+name = "wandering-lora"
+version = "0.1.0"
+description = "Local AI caption + classification pipeline producing LoRA-ready sidecars"
+requires-python = ">=3.12"
+dependencies = [
+  "torch>=2.14",
+  "torchvision",
+  "transformers>=5.2",
+  "accelerate",
+  "bitsandbytes",
+  "pillow>=11.1",
+  "pillow-heif>=1.0",
+  "pyyaml",
+  "huggingface-hub",
+  "onnxruntime-gpu>=1.20",
+  "pandas",
+  "numpy",
+  "tqdm",
+  "flash-linear-attention",
+]
+
+[project.scripts]
+wlora = "wlora.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wlora"]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }
+
+[dependency-groups]
+dev = ["pytest"]

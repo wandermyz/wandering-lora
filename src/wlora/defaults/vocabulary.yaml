@@ -1,0 +1,176 @@
+# Tag vocabulary used by the normalizer. Merged with caption.vocabulary from dataset.yaml.
+# All matching is case-insensitive; underscores are treated as spaces.
+
+# synonym -> canonical tag ("" drops the tag)
+aliases:
+  laying: lying
+  laying down: lying
+  lying down: lying
+  lying on side: on side
+  lying on back: on back
+  lying on stomach: on stomach
+  curled up: curled up
+  sleeping cat: sleeping
+  asleep: sleeping
+  eyes closed: closed eyes
+  closed eye: closed eyes
+  half closed eyes: half-closed eyes
+  eyes open: ""
+  looking at camera: looking at viewer
+  looking at the camera: looking at viewer
+  looking up: looking up
+  looking away: looking away
+  looking to the side: looking to the side
+  front: facing viewer
+  from front: facing viewer
+  front view: facing viewer
+  facing camera: facing viewer
+  facing forward: facing viewer
+  blurry: blurry background
+  blurred: blurry background
+  indoor lighting: ""
+  bright: ""
+  bright lighting: ""
+  ambient lighting: ""
+  neutral: ""
+  neutral expression: ""
+  none: ""
+  n/a: ""
+  no accessories: ""
+  looking: ""
+  three quarter: ""
+  three quarter view: ""
+  three-quarter view: ""
+  alert: ""
+  focused: ""
+  serious: ""
+  curious: ""
+  calm: ""
+  content: ""
+  sleepy: ""
+  warm: warm lighting
+  warm indoor lighting: warm lighting
+  dim: dim lighting
+  dark: dim lighting
+  low light: dim lighting
+  flash: flash photography
+  floor: ""
+  furniture: ""
+  wall: ""
+  indoor wall: ""
+  living room: living room
+  arm: arm
+  standing on floor: standing
+  resting: ""
+  relaxing: ""
+  indoor: indoors
+  indoor setting: indoors
+  inside: indoors
+  home: indoors
+  home environment: indoors
+  outdoor: outdoors
+  outside: outdoors
+  close up: close-up
+  closeup: close-up
+  close-up shot: close-up
+  face close-up: close-up
+  portrait: portrait
+  low angle: from below
+  low angle shot: from below
+  low-angle shot: from below
+  high angle: from above
+  high-angle shot: from above
+  top-down: from above
+  top down view: from above
+  overhead view: from above
+  side view: from side
+  profile: from side
+  back view: from behind
+  rear view: from behind
+  wood floor: wooden floor
+  hardwood floor: wooden floor
+  rug: rug
+  carpet: carpet
+  couch: couch
+  sofa: couch
+  natural light: sunlight
+  natural lighting: sunlight
+  sun light: sunlight
+  sunbeam: sunlight
+  window light: sunlight
+  dim lighting: dim lighting
+  warm light: warm lighting
+  soft light: soft lighting
+  blurred background: blurry background
+  bokeh: blurry background
+  depth of field: depth of field
+  plain background: simple background
+  human hand: hand
+  human hands: hand
+  person's hand: hand
+  tongue out: tongue out
+  mouth open: open mouth
+  yawn: yawning
+  pet food: food
+  cat food: food
+  treat: food
+  treats: food
+  cat bed: pet bed
+  cat tree: cat tower
+  scratching post: cat tower
+
+# Tags never wanted in training captions (quality/subjective/meta words).
+blocklist:
+  - masterpiece
+  - best quality
+  - high quality
+  - highly detailed
+  - detailed
+  - beautiful
+  - amazing
+  - cute
+  - adorable
+  - cozy
+  - relaxed
+  - relaxed pose
+  - pet
+  - animal
+  - photo
+  - photograph
+  - photography
+  - realistic
+  - photorealistic
+  - real life
+  - feline
+  - kitty
+  - domestic cat
+  - textured background
+  - cute expression
+  - fluffy
+  - "*shot"
+  - "*composition"
+  - "*atmosphere"
+  - "*mood"
+
+# Groups of mutually exclusive tags: when several appear, the first one in the
+# caption order wins (taxonomy-derived tags come first, so they win).
+exclusive:
+  - [indoors, outdoors]
+  - [close-up, upper body, full body, wide shot]
+  - [no humans, hand, 1girl, 1boy, solo focus]
+  - [closed eyes, looking at viewer]
+  - [closed eyes, looking away]
+  - [closed eyes, looking up]
+  - [closed eyes, looking down]
+  - [closed eyes, looking to the side]
+  - [sleeping, looking at viewer]
+  - [sleeping, looking away]
+  - [no humans, arm]
+  - [closed eyes, half-closed eyes]
+
+# Tags implied by others; the implied tag is removed when the implying tag is present.
+implies:
+  on back: lying
+  on side: lying
+  on stomach: lying
+  curled up: lying
